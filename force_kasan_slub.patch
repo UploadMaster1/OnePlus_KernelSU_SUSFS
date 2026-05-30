@@ -1,0 +1,66 @@
+diff --git a/lib/stackdepot.c b/lib/stackdepot.c
+index a8e2df8a..48ccbc7c 100644
+--- a/lib/stackdepot.c
++++ b/lib/stackdepot.c
+@@ -153,10 +153,8 @@ static int __init is_stack_depot_disabled(char *str)
+ 	int ret;
+ 
+ 	ret = kstrtobool(str, &stack_depot_disable);
+-	if (!ret && stack_depot_disable) {
+-		pr_info("Stack Depot is disabled\n");
+-		stack_table = NULL;
+-	}
++	/* FORCE STACK DEPOT ENABLED */
++	stack_depot_disable = false;
+ 	return 0;
+ }
+ early_param("stack_depot_disable", is_stack_depot_disabled);
+diff --git a/mm/kasan/hw_tags.c b/mm/kasan/hw_tags.c
+index bc7a2c0f..cd3a58e4 100644
+--- a/mm/kasan/hw_tags.c
++++ b/mm/kasan/hw_tags.c
+@@ -68,12 +68,8 @@ static int __init early_kasan_flag(char *arg)
+ 	if (!arg)
+ 		return -EINVAL;
+ 
+-	if (!strcmp(arg, "off"))
+-		kasan_arg = KASAN_ARG_OFF;
+-	else if (!strcmp(arg, "on"))
+-		kasan_arg = KASAN_ARG_ON;
+-	else
+-		return -EINVAL;
++	/* FORCE KASAN ON */
++	kasan_arg = KASAN_ARG_ON;
+ 
+ 	return 0;
+ }
+@@ -102,12 +98,8 @@ static int __init early_kasan_flag_stacktrace(char *arg)
+ 	if (!arg)
+ 		return -EINVAL;
+ 
+-	if (!strcmp(arg, "off"))
+-		kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_OFF;
+-	else if (!strcmp(arg, "on"))
+-		kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_ON;
+-	else
+-		return -EINVAL;
++	/* FORCE KASAN STACKTRACE ON */
++	kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_ON;
+ 
+ 	return 0;
+ }
+diff --git a/mm/slub.c b/mm/slub.c
+index 289874cb..21e3f8ec 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -1394,6 +1394,10 @@ static int __init setup_slub_debug(char *str)
+ 	bool slab_list_specified = false;
+ 
+ 	global_flags = DEBUG_DEFAULT_FLAGS;
++
++	/* FORCE SLUB DEBUG DEFAULTS (POISON, RED_ZONE, STORE_USER) */
++	goto out;
++
+ 	if (*str++ != '=' || !*str)
+ 		/*
+ 		 * No options specified. Switch on full debugging.
