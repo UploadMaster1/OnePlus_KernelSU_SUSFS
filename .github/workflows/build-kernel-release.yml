@@ -17,6 +17,7 @@ on:
         required: true
         type: choice
         options:
+          - OP10pro-OOS15
           - OOS14+15+16
           - OOS15+16
           - OOS14+15
@@ -28,7 +29,7 @@ on:
           - android14-6.1
           - android13-5.15
           - android12-5.10
-        default: OOS14+15+16
+        default: OP10pro-OOS15
       ksu_options:
         description: 'Enter KernelSU build json'
         required: true
@@ -137,6 +138,9 @@ jobs:
           jq_filter="."
           
           case "$input" in
+            OP10pro-OOS15)
+              jq_filter="map(select(.model == \"OP10pro\" and .os_version == \"OOS15\"))"
+              ;;
             OOS14+15+16)
               ;;
             OOS15+16)
@@ -1180,6 +1184,17 @@ jobs:
               echo "Uploading $file..."
               gh release upload "${{ env.NEW_TAG }}" "$file" --clobber
             fi
+          done
+          
+          echo "Finding and compressing vmlinux files..."
+          find . -type f -name "vmlinux" -path "*/debug_*/*" 2>/dev/null | while read vmlinux; do
+            dir=$(dirname "$vmlinux")
+            base=$(basename "$dir")
+            output="${base}_vmlinux.tar.xz"
+            echo "Compressing $vmlinux to $output..."
+            tar -cJf "$output" -C "$dir" vmlinux
+            echo "Uploading $output..."
+            gh release upload "${{ env.NEW_TAG }}" "$output" --clobber
           done
 
       - name: 📊 Release summary
