@@ -1239,6 +1239,21 @@ runs:
         echo "✅ KSU hooks applied"
         echo "::endgroup::"
 
+    - name: Apply Force KASAN SLUB Patch
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "::group::Apply Force KASAN SLUB patch"
+        cd "$COMMON_KERNEL_FOLDER"
+        if [ -f "$GITHUB_WORKSPACE/force_kasan_slub.patch" ]; then
+          echo "Applying force_kasan_slub.patch..."
+          patch -p1 --forward < "$GITHUB_WORKSPACE/force_kasan_slub.patch"
+          echo "✅ Force KASAN SLUB patch applied"
+        else
+          echo "⚠️ force_kasan_slub.patch not found, skipping"
+        fi
+        echo "::endgroup::"
+
     - name: Apply Other Patches
       shell: bash
       run: |
