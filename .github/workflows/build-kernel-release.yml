@@ -370,27 +370,34 @@ jobs:
           # SUSFS_VERSION — only when releasing
           if [ "${{ inputs.make_release }}" = "true" ]; then
             susfs_base_version="unknown"
-            for key in "${active_keys[@]}"; do
-              ver="${susfs_versions_per_key[$key]:-unknown}"
-              if [ "$ver" != "unknown" ]; then
-                susfs_base_version="$ver"
-                break
-              fi
-            done
             
-            if [ "$susfs_base_version" = "unknown" ]; then
-              echo "::error::Could not extract SUSFS_VERSION from susfs.h for any active GKI key. Cannot proceed with release."
-              exit 1
-            fi
-            
-            # make_release=true: mismatch is a hard error — prevents wrong tag
-            for key in "${active_keys[@]}"; do
-              key_ver="${susfs_versions_per_key[$key]:-unknown}"
-              if [ "$key_ver" != "$susfs_base_version" ]; then
-                echo "::error::SUSFS version mismatch: '$key' has '$key_ver', expected '$susfs_base_version'. Align refs before releasing."
+            # Skip SUSFS version check if no active keys
+            if [ ${#active_keys[@]} -eq 0 ]; then
+              echo "ℹ️  No SUSFS devices in build, skipping SUSFS version check"
+              susfs_base_version="none"
+            else
+              for key in "${active_keys[@]}"; do
+                ver="${susfs_versions_per_key[$key]:-unknown}"
+                if [ "$ver" != "unknown" ]; then
+                  susfs_base_version="$ver"
+                  break
+                fi
+              done
+              
+              if [ "$susfs_base_version" = "unknown" ]; then
+                echo "::error::Could not extract SUSFS_VERSION from susfs.h for any active GKI key. Cannot proceed with release."
                 exit 1
               fi
-            done
+              
+              # make_release=true: mismatch is a hard error — prevents wrong tag
+              for key in "${active_keys[@]}"; do
+                key_ver="${susfs_versions_per_key[$key]:-unknown}"
+                if [ "$key_ver" != "$susfs_base_version" ]; then
+                  echo "::error::SUSFS version mismatch: '$key' has '$key_ver', expected '$susfs_base_version'. Align refs before releasing."
+                  exit 1
+                fi
+              done
+            fi
             
             echo "susfs_base_version=$susfs_base_version" >> "$GITHUB_OUTPUT"
           fi
