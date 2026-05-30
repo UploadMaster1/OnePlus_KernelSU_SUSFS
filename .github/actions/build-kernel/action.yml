@@ -1526,6 +1526,12 @@ runs:
         CONFIG_OPTIMIZE_INLINING=y
         CONFIG_FRAME_WARN=0
         CONFIG_TRACEPOINTS=y
+        CONFIG_KASAN=y
+        CONFIG_KASAN_INLINE=y
+        CONFIG_KASAN_OUTLINE=n
+        CONFIG_SLUB_DEBUG=y
+        CONFIG_PANIC_ON_OOPS=n
+        CONFIG_PANIC_ON_WARN=n
         EOF
 
     - name: Add RUST build configs
