@@ -2,7 +2,7 @@ diff --git a/lib/stackdepot.c b/lib/stackdepot.c
 index a8e2df8a..48ccbc7c 100644
 --- a/lib/stackdepot.c
 +++ b/lib/stackdepot.c
-@@ -153,10 +153,8 @@ static int __init is_stack_depot_disabled(char *str)
+@@ -153,10 +153,9 @@ static int __init is_stack_depot_disabled(char *str)
  	int ret;
  
  	ret = kstrtobool(str, &stack_depot_disable);
@@ -11,6 +11,7 @@ index a8e2df8a..48ccbc7c 100644
 -		stack_table = NULL;
 -	}
 +	/* FORCE STACK DEPOT ENABLED */
++	pr_err("STACKDEPOT FORCE: Intercepting disable request. Forcing stack_depot_disable = false!\n");
 +	stack_depot_disable = false;
  	return 0;
  }
@@ -19,7 +20,7 @@ diff --git a/mm/kasan/hw_tags.c b/mm/kasan/hw_tags.c
 index bc7a2c0f..cd3a58e4 100644
 --- a/mm/kasan/hw_tags.c
 +++ b/mm/kasan/hw_tags.c
-@@ -68,12 +68,8 @@ static int __init early_kasan_flag(char *arg)
+@@ -68,12 +68,9 @@ static int __init early_kasan_flag(char *arg)
  	if (!arg)
  		return -EINVAL;
  
@@ -30,11 +31,12 @@ index bc7a2c0f..cd3a58e4 100644
 -	else
 -		return -EINVAL;
 +	/* FORCE KASAN ON */
++	pr_err("KASAN FORCE: early_kasan_flag forced ON!\n");
 +	kasan_arg = KASAN_ARG_ON;
  
  	return 0;
  }
-@@ -102,12 +98,8 @@ static int __init early_kasan_flag_stacktrace(char *arg)
+@@ -102,12 +99,9 @@ static int __init early_kasan_flag_stacktrace(char *arg)
  	if (!arg)
  		return -EINVAL;
  
@@ -45,20 +47,45 @@ index bc7a2c0f..cd3a58e4 100644
 -	else
 -		return -EINVAL;
 +	/* FORCE KASAN STACKTRACE ON */
++	pr_err("KASAN FORCE: early_kasan_flag_stacktrace forced ON!\n");
 +	kasan_arg_stacktrace = KASAN_ARG_STACKTRACE_ON;
  
  	return 0;
  }
+@@ -156,13 +150,19 @@ void __init kasan_init_hw_tags(void)
+ {
+ 	/* If hardware doesn't support MTE, don't initialize KASAN. */
+-	if (!system_supports_mte())
+-		return;
++	if (!system_supports_mte()) {
++		pr_err("KASAN FORCE: system_supports_mte() returned false! CPU or hypervisor blocked MTE. HW KASAN aborting.\n");
++		return;
++	}
+ 
+ 	/* If KASAN is disabled via command line, don't initialize it. */
+-	if (kasan_arg == KASAN_ARG_OFF)
+-		return;
++	if (kasan_arg == KASAN_ARG_OFF) {
++		pr_err("KASAN FORCE: kasan_arg is OFF. HW KASAN aborting.\n");
++		return;
++	}
+ 
+ 	/* Enable KASAN. */
++	pr_err("KASAN FORCE: system_supports_mte() is TRUE! ACTIVATING HW KASAN!\n");
+ 	static_branch_enable(&kasan_flag_enabled);
+ 
+ 	switch (kasan_arg_mode) {
 diff --git a/mm/slub.c b/mm/slub.c
 index 289874cb..21e3f8ec 100644
 --- a/mm/slub.c
 +++ b/mm/slub.c
-@@ -1394,6 +1394,10 @@ static int __init setup_slub_debug(char *str)
+@@ -1394,6 +1394,11 @@ static int __init setup_slub_debug(char *str)
  	bool slab_list_specified = false;
  
  	global_flags = DEBUG_DEFAULT_FLAGS;
 +
 +	/* FORCE SLUB DEBUG DEFAULTS (POISON, RED_ZONE, STORE_USER) */
++	pr_err("SLUB FORCE: setup_slub_debug intercepting! Forcing DEBUG_DEFAULT_FLAGS.\n");
 +	goto out;
 +
  	if (*str++ != '=' || !*str)
