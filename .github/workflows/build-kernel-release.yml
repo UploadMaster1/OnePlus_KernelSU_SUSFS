@@ -11,7 +11,7 @@ on:
         description: 'Do you want to create a release?'
         required: true
         type: boolean
-        default: false
+        default: true
       op_model:
         description: 'Select the OnePlus kernels to build'
         required: true
@@ -49,7 +49,7 @@ on:
         description: 'Enable debug mode: dumping debug related artifacts and show some debug logs'
         required: false
         type: boolean
-        default: false
+        default: true
       mirror_toolchains:
         description: 'Do you want to sync toolchains before build? [99% runs not required]'
         required: false
