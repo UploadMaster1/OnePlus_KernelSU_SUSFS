@@ -1535,6 +1535,12 @@ runs:
       run: |
         set -euo pipefail
         echo "Add Build based configs"
+        cd "$COMMON_KERNEL_FOLDER"
+        
+        # Force disable HW_TAGS and enable SW_TAGS
+        sed -i 's/CONFIG_KASAN_HW_TAGS=y/# CONFIG_KASAN_HW_TAGS is not set/' arch/arm64/configs/gki_defconfig
+        sed -i 's/# CONFIG_KASAN_SW_TAGS is not set/CONFIG_KASAN_SW_TAGS=y/' arch/arm64/configs/gki_defconfig
+        
         cat >> "$COMMON_KERNEL_FOLDER/arch/arm64/configs/gki_defconfig" <<EOF
         CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y
         CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3=n
@@ -1542,6 +1548,7 @@ runs:
         CONFIG_FRAME_WARN=0
         CONFIG_TRACEPOINTS=y
         CONFIG_KASAN=y
+        CONFIG_KASAN_SW_TAGS=y
         CONFIG_KASAN_INLINE=y
         CONFIG_KASAN_OUTLINE=n
         CONFIG_SLUB_DEBUG=y
