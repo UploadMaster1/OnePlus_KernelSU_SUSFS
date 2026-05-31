@@ -1,8 +1,7 @@
-diff --git a/lib/stackdepot.c b/lib/stackdepot.c
-index a8e2df8a..48ccbc7c 100644
---- a/lib/stackdepot.c
-+++ b/lib/stackdepot.c
-@@ -153,10 +153,9 @@ static int __init is_stack_depot_disabled(char *str)
+diff -ur original/lib/stackdepot.c modified/lib/stackdepot.c
+--- original/lib/stackdepot.c	2026-05-30 16:55:57.860253772 -0700
++++ modified/lib/stackdepot.c	2026-05-30 16:56:17.035329816 -0700
+@@ -154,10 +154,9 @@
  	int ret;
  
  	ret = kstrtobool(str, &stack_depot_disable);
@@ -16,11 +15,10 @@ index a8e2df8a..48ccbc7c 100644
  	return 0;
  }
  early_param("stack_depot_disable", is_stack_depot_disabled);
-diff --git a/mm/kasan/hw_tags.c b/mm/kasan/hw_tags.c
-index bc7a2c0f..cd3a58e4 100644
---- a/mm/kasan/hw_tags.c
-+++ b/mm/kasan/hw_tags.c
-@@ -68,12 +68,9 @@ static int __init early_kasan_flag(char *arg)
+diff -ur original/mm/kasan/hw_tags.c modified/mm/kasan/hw_tags.c
+--- original/mm/kasan/hw_tags.c	2026-05-30 16:55:57.850074799 -0700
++++ modified/mm/kasan/hw_tags.c	2026-05-30 16:56:19.031432019 -0700
+@@ -68,12 +68,9 @@
  	if (!arg)
  		return -EINVAL;
  
@@ -36,7 +34,7 @@ index bc7a2c0f..cd3a58e4 100644
  
  	return 0;
  }
-@@ -102,12 +99,9 @@ static int __init early_kasan_flag_stacktrace(char *arg)
+@@ -102,12 +99,9 @@
  	if (!arg)
  		return -EINVAL;
  
@@ -52,22 +50,21 @@ index bc7a2c0f..cd3a58e4 100644
  
  	return 0;
  }
-@@ -156,13 +150,19 @@ void __init kasan_init_hw_tags(void)
+@@ -156,14 +150,19 @@
+ void __init kasan_init_hw_tags(void)
  {
  	/* If hardware doesn't support MTE, don't initialize KASAN. */
 -	if (!system_supports_mte())
--		return;
 +	if (!system_supports_mte()) {
 +		pr_err("KASAN FORCE: system_supports_mte() returned false! CPU or hypervisor blocked MTE. HW KASAN aborting.\n");
-+		return;
+ 		return;
 +	}
  
  	/* If KASAN is disabled via command line, don't initialize it. */
 -	if (kasan_arg == KASAN_ARG_OFF)
--		return;
 +	if (kasan_arg == KASAN_ARG_OFF) {
 +		pr_err("KASAN FORCE: kasan_arg is OFF. HW KASAN aborting.\n");
-+		return;
+ 		return;
 +	}
  
  	/* Enable KASAN. */
@@ -75,11 +72,10 @@ index bc7a2c0f..cd3a58e4 100644
  	static_branch_enable(&kasan_flag_enabled);
  
  	switch (kasan_arg_mode) {
-diff --git a/mm/slub.c b/mm/slub.c
-index 289874cb..21e3f8ec 100644
---- a/mm/slub.c
-+++ b/mm/slub.c
-@@ -1394,6 +1394,11 @@ static int __init setup_slub_debug(char *str)
+diff -ur original/mm/slub.c modified/mm/slub.c
+--- original/mm/slub.c	2026-05-30 16:55:57.860253772 -0700
++++ modified/mm/slub.c	2026-05-30 16:56:21.047902611 -0700
+@@ -1394,11 +1394,12 @@
  	bool slab_list_specified = false;
  
  	global_flags = DEBUG_DEFAULT_FLAGS;
@@ -89,5 +85,10 @@ index 289874cb..21e3f8ec 100644
 +	goto out;
 +
  	if (*str++ != '=' || !*str)
- 		/*
- 		 * No options specified. Switch on full debugging.
+-		/*
+-		 * No options specified. Switch on full debugging.
+-		 */
+-		goto out;
+ 
+ 	saved_str = str;
+ 	while (str) {
